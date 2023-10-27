@@ -1,0 +1,96 @@
+import torch
+import math
+import numpy as np
+
+def swap(minT, maxT):
+    if minT > maxT:
+        temp = maxT
+        maxT = minT
+        minT = temp
+    return minT, maxT
+
+device = torch.device('cuda')
+
+surface = 1
+
+for step in range(1,401):
+    #surface = step
+    print(step)
+    print(surface)
+    #Resolution
+    n = 8
+    sum = n*n*n
+    
+    # 初始化变量，用于确保进入循环
+    abs_diff = 0
+    
+#     minTx = np.random.uniform(low=0.5, high=3.0)
+#     maxTx = np.random.uniform(low=0.5, high=3.0)
+#     minTy = np.random.uniform(low=0.5, high=3.0)
+#     maxTy = np.random.uniform(low=0.5, high=3.0)
+#     minTz = np.random.uniform(low=0.5, high=3.0)
+#     maxTz = np.random.uniform(low=0.5, high=3.0)
+
+    while True:
+        minTx = np.random.uniform(low=0.5, high=3.0)
+        maxTx = np.random.uniform(low=0.5, high=3.0)
+        minTy = np.random.uniform(low=0.5, high=3.0)
+        maxTy = np.random.uniform(low=0.5, high=3.0)
+        minTz = np.random.uniform(low=0.5, high=3.0)
+        maxTz = np.random.uniform(low=0.5, high=3.0)
+
+        # 计算绝对值只差
+        diff_x = abs(maxTx - minTx)
+        diff_y = abs(maxTy - minTy)
+        diff_z = abs(maxTz - minTz)
+
+        if diff_x > abs_diff and diff_y > abs_diff and diff_z > abs_diff:
+            break
+
+    #交换 minT 和 maxT 的值（确保 minT 小于 maxT）
+    minTx, maxTx = swap(minTx, maxTx)
+    minTy, maxTy = swap(minTy, maxTy)
+    minTz, maxTz = swap(minTz, maxTz)
+
+    print("minTx:", minTx)
+    print("maxTx:", maxTx)
+    print("minTy:", minTy)
+    print("maxTy:", maxTy)
+    print("minTz:", minTz)
+    print("maxTz:", maxTz)
+   
+    Tx = np.random.uniform(low=0.0, high=1.0, size=(sum, 1))
+    min_val = np.min(Tx)
+    max_val = np.max(Tx)
+    normalized_sample = (Tx - min_val) / (max_val - min_val)
+    Tx = normalized_sample * (maxTx - minTx) + minTx
+    
+    Ty = np.random.uniform(low=0.0, high=1.0, size=(sum, 1))
+    min_val = np.min(Ty)
+    max_val = np.max(Ty)
+    normalized_sample = (Ty - min_val) / (max_val - min_val)
+    Ty = normalized_sample * (maxTy - minTy) + minTy
+    
+    Tz = np.random.uniform(low=0.0, high=1.0, size=(sum, 1))
+    min_val = np.min(Tz)
+    max_val = np.max(Tz)
+    normalized_sample = (Tz - min_val) / (max_val - min_val)
+    Tz = normalized_sample * (maxTz - minTz) + minTz
+    
+    x = np.linspace(-1, 1, n)
+    y = np.linspace(-1, 1, n)
+    z = np.linspace(-1, 1, n)
+
+    x, y, z = np.meshgrid(x, y, z, indexing='ij')
+    x = np.reshape(x, (sum, 1)).astype(np.float32)
+    y = np.reshape(y, (sum, 1)).astype(np.float32)
+    z = np.reshape(z, (sum, 1)).astype(np.float32)
+    tx = np.reshape(Tx, (sum, 1)).astype(np.float32)
+    ty = np.reshape(Ty, (sum, 1)).astype(np.float32)
+    tz = np.reshape(Tz, (sum, 1)).astype(np.float32)
+    
+    data = np.hstack((x,y,z,tx,ty,tz))
+    print(data)
+    print(data.dtype)
+    print(data.shape)
+    np.savez(r'D:\GaussianRF\GRF'+str(step)+'.npz',xyzt=data,type=surface)
